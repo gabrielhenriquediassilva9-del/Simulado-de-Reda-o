@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulado de Redação</title>
+<style>
+  :root{
+    --paper:#fbf8f0;
+    --ink:#2b2d42;
+    --muted:#6b6f80;
+    --line:#d9d4c3;
+    --accent:#2a6f97;
+    --accent-2:#e07a5f;
+    --ok:#4a8b5c;
+    --warn:#d98e04;
+    --danger:#b23a48;
+    --hl:#fff1a8;
+    --card:#ffffff;
+    --radius:14px;
+    --shadow:0 6px 18px rgba(43,45,66,.08);
+  }
+  *{box-sizing:border-box}
+  html{scroll-padding-top:env(safe-area-inset-top,0px)}
+  body{
+    margin:0;
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+    color:var(--ink);
+    background-color:var(--paper);
+    background-image:
+      linear-gradient(rgba(43,45,66,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(43,45,66,.05) 1px, transparent 1px);
+    background-size:28px 28px;
+    min-height:100vh;
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+
+  /* ---------- Cabeçalho ---------- */
+  header{
+    background:linear-gradient(135deg,#1d3557 0%,#2a6f97 100%);
+    color:#fff;
+    padding:22px 28px;
+    box-shadow:var(--shadow);
+    position:relative;
+    overflow:hidden;
+  }
+  header::after{
+    content:"";
+    position:absolute; right:-40px; top:-40px;
+    width:180px; height:180px; border-radius:50%;
+    background:rgba(255,255,255,.08);
+  }
+  .cabecalho{
+    max-width:1280px; margin:0 auto;
+    display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
+  }
+  .titulo h1{margin:0;font-size:1.7rem;letter-spacing:.3px}
+  .titulo p{margin:4px 0 0;opacity:.85;font-size:.95rem}
+  .relogio{
+    text-align:right; background:rgba(255,255,255,.12);
+    padding:10px 16px; border-radius:12px; min-width:220px;
+  }
+  .relogio .hora{font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums}
+  .relogio .data{font-size:.8rem;opacity:.85;text-transform:capitalize}
+
+  /* ---------- Layout ---------- */
+  .container{
+    max-width:1280px; margin:0 auto; padding:24px;
+    display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:24px;
+    align-items:start;
+  }
+  @media (max-width:960px){
+    .container{grid-template-columns:1fr}
+    .sidebar{position:static !important}
+    .relogio{text-align:left;min-width:0;width:100%}
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:22px 24px;
+    margin-bottom:24px;
+  }
+  .card h2{
+    margin:0 0 6px; font-size:1.15rem;
+    display:flex; align-items:center; gap:10px;
+  }
+  .num{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:28px; height:28px; border-radius:50%;
+    background:var(--accent); color:#fff; font-size:.9rem; font-weight:700; flex-shrink:0;
+  }
+  .card .desc{margin:0 0 16px;color:var(--muted);font-size:.92rem;line-height:1.5}
+
+  /* ---------- Como usar ---------- */
+  .passos{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:0;padding:0;list-style:none}
+  .passos li{
+    background:#f4f7fb; border-radius:12px; padding:14px;
+    font-size:.88rem; line-height:1.45; border-left:4px solid var(--accent);
+  }
+  .passos li strong{display:block;margin-bottom:4px;color:var(--accent)}
+  @media (max-width:760px){.passos{grid-template-columns:1fr 1fr}}
+  @media (max-width:480px){.passos{grid-template-columns:1fr}}
+
+  /* ---------- Texto de apoio ---------- */
+  .anexo-area{
+    border:2px dashed #a9c4d8; border-radius:12px; padding:18px;
+    display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+    background:#f7fbff;
+  }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    border:none; border-radius:10px; padding:10px 16px;
+    font-size:.92rem; font-weight:600; cursor:pointer;
+    background:var(--accent); color:#fff; transition:transform .1s, opacity .2s;
+  }
+  .btn:hover{opacity:.92}
+  .btn:active{transform:scale(.98)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn.secundario{background:#e9eef4;color:var(--ink)}
+  .btn.perigo{background:var(--danger)}
+  .arquivo-info{font-size:.9rem;color:var(--muted)}
+  .arquivo-info strong{color:var(--ink)}
+  input[type=file]{display:none}
+  .texto-apoio{
+    margin-top:16px; background:#fdfcf7; border:1px solid var(--line);
+    border-radius:12px; padding:18px 20px; max-height:260px; overflow:auto;
+    white-space:pre-wrap; line-height:1.7; font-family:Georgia,"Times New Roman",serif; font-size:1rem;
+    display:none;
+  }
+  .texto-apoio.visivel{display:block}
+  .texto-apoio::before{
+    content:"Texto de apoio"; display:block; font-family:"Segoe UI",system-ui,sans-serif;
+    font-size:.75rem; text-transform:uppercase; letter-spacing:1px; color:var(--accent-2);
+    font-weight:700; margin-bottom:10px;
+  }
+  .vazio-apoio{color:var(--muted);font-size:.9rem;margin-top:14px;font-style:italic}
+
+  /* ---------- Editor ---------- */
+  .tema-chip{
+    display:inline-block; background:var(--hl); padding:2px 8px; border-radius:6px; font-weight:600;
+  }
+  .editor-barra{
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;
+    margin-bottom:10px; font-size:.88rem; color:var(--muted);
+  }
+  .linhas-indicador{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+  .barra-linhas{height:8px;background:#ece8dc;border-radius:99px;overflow:hidden;width:180px;max-width:100%}
+  .barra-linhas span{display:block;height:100%;width:0;background:var(--ok);transition:width .25s, background .25s}
+  textarea#redacao{
+    width:100%;
+    height:656px;             /* 20 linhas x 32px + 16px de respiro */
+    resize:none; overflow:hidden;
+    padding:8px 16px;
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:17px; line-height:32px;
+    color:var(--ink);
+    border:1px solid var(--line); border-radius:12px;
+    background-color:#fffef9;
+    background-image:linear-gradient(transparent 31px, #cfd9e6 31px, #cfd9e6 32px);
+    background-size:100% 32px;
+    background-attachment:local;
+    outline:none;
+    transition:border-color .2s, box-shadow .2s, background-color .2s;
+  }
+  textarea#redacao:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(42,111,151,.15)}
+  textarea#redacao:disabled{background-color:#f1efe8;color:var(--muted);cursor:not-allowed}
+  .aviso-encerrado{
+    display:none; margin-top:12px; padding:12px 16px; border-radius:10px;
+    background:#fdecee; color:var(--danger); font-weight:600; border:1px solid #f3b9c0;
+  }
+  .aviso-encerrado.visivel{display:block}
+
+  /* ---------- Estrutura didática ---------- */
+  .estrutura{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  @media (max-width:640px){.estrutura{grid-template-columns:1fr}}
+  .etapa{
+    border-radius:12px; padding:16px; background:#fafafa; border:1px solid #ececec;
+  }
+  .etapa h3{margin:0 0 6px;font-size:.98rem;display:flex;justify-content:space-between;align-items:center}
+  .etapa small{color:var(--accent-2);font-weight:700;font-size:.75rem;letter-spacing:.5px;text-transform:uppercase}
+  .etapa p{margin:0;font-size:.88rem;line-height:1.5;color:#44475a}
+  .etapa ul{margin:8px 0 0;padding-left:18px;font-size:.85rem;color:#44475a;line-height:1.55}
+
+  /* ---------- Checklist ---------- */
+  .checklist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+  .checklist label{
+    display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:10px;
+    background:#f7f7fb;cursor:pointer;font-size:.9rem;line-height:1.4;
+  }
+  .checklist input{margin-top:3px;accent-color:var(--ok);width:16px;height:16px;flex-shrink:0}
+  .checklist label:has(input:checked){background:#e8f5ec;text-decoration:line-through;color:var(--muted)}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{position:sticky;top:20px}
+  .cronometro{
+    background:linear-gradient(160deg,#1d3557,#2a6f97);
+    color:#fff; border-radius:var(--radius); padding:22px; box-shadow:var(--shadow); margin-bottom:24px;
+    text-align:center;
+  }
+  .cronometro .rotulo{font-size:.8rem;text-transform:uppercase;letter-spacing:1.2px;opacity:.85}
+  .cronometro .tempo{
+    font-size:3rem;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:2px;margin:8px 0;
+    transition:color .3s;
+  }
+  .cronometro.alerta .tempo{color:#ffd166}
+  .cronometro.critico .tempo{color:#ff8a8a;animation:pulsa 1s infinite}
+  @keyframes pulsa{50%{opacity:.5}}
+  .progresso-tempo{height:10px;background:rgba(255,255,255,.2);border-radius:99px;overflow:hidden;margin-top:10px}
+  .progresso-tempo span{display:block;height:100%;width:0%;background:#8be9a8;transition:width .9s linear, background .3s}
+  .cronometro.alerta .progresso-tempo span{background:#ffd166}
+  .cronometro.critico .progresso-tempo span{background:#ff8a8a}
+  .cronometro .info{display:flex;justify-content:space-between;font-size:.8rem;opacity:.9;margin-top:10px}
+
+  .metricas{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .metrica{
+    background:#f7f9fc;border:1px solid #e3e9f2;border-radius:12px;padding:12px;
+  }
+  .metrica .valor{font-size:1.35rem;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1.2}
+  .metrica .nome{font-size:.76rem;color:var(--muted);margin-top:2px;line-height:1.3}
+  .metrica.destaque{grid-column:1 / -1;background:linear-gradient(120deg,#fff7d6,#fff1a8);border-color:#f2df7a}
+  .metrica.destaque .valor{color:#7a5c00}
+  .lista-conectivos{margin-top:12px;font-size:.85rem;color:#44475a;line-height:1.5}
+  .lista-conectivos strong{color:var(--ink)}
+  .tag{
+    display:inline-block;margin:3px 3px 0 0;padding:2px 8px;border-radius:99px;
+    background:#e9f5ee;color:#2d6a43;font-size:.78rem;font-weight:600;
+  }
+
+  .acoes{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+
+  /* ---------- Toast ---------- */
+  .toast{
+    position:fixed; left:50%; bottom:24px; transform:translate(-50%,140%);
+    background:var(--ink); color:#fff; padding:12px 18px; border-radius:10px;
+    box-shadow:0 10px 30px rgba(0,0,0,.25); font-size:.9rem; transition:transform .3s;
+    z-index:50; max-width:90vw; text-align:center;
+  }
+  .toast.visivel{transform:translate(-50%,0)}
+
+  .resumo{display:none;margin-top:16px;padding:18px 20px;border-radius:12px;background:#eef7f1;border:1px solid #bfe0c9}
+  .resumo.visivel{display:block}
+  .resumo h3{margin:0 0 6px;color:#2d6a43;font-size:1.05rem}
+  .resumo p{margin:0 0 12px;color:#44475a;font-size:.9rem;line-height:1.5}
+  .resumo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .resumo-grid div{background:#fff;border-radius:10px;padding:10px;text-align:center}
+  .resumo-grid strong{display:block;font-size:1.2rem;color:var(--accent);font-variant-numeric:tabular-nums}
+  .resumo-grid span{font-size:.75rem;color:var(--muted)}
+  @media (max-width:640px){.resumo-grid{grid-template-columns:1fr 1fr}}
+  .btn.sucesso{background:var(--ok)}
+  .rodape{text-align:center;color:var(--muted);font-size:.8rem;padding:0 0 28px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="cabecalho">
+    <div class="titulo">
+      <h1>📚 Simulado de Redação</h1>
+      <p>Produção textual dissertativo-argumentativa · Tempo oficial: 1h30</p>
+    </div>
+    <div class="relogio" aria-live="off">
+      <div class="hora" id="relogio">--:--:--</div>
+      <div class="data" id="data"></div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <main>
+
+    <!-- Como usar -->
+    <section class="card">
+      <h2>Como usar o simulado</h2>
+      <p class="desc">Siga a ordem abaixo para simular as condições reais da prova.</p>
+      <ol class="passos">
+        <li><strong>1. Anexe o tema</strong>Carregue o texto de apoio (.txt ou .md) que define o tema da redação.</li>
+        <li><strong>2. Leia com atenção</strong>Identifique o recorte do tema, os termos-chave e a proposta de discussão.</li>
+        <li><strong>3. Escreva</strong>Use no máximo 20 linhas. O cronômetro começou assim que a página foi aberta.</li>
+        <li><strong>4. Analise</strong>Acompanhe as métricas e revise cada etapa da estrutura argumentativa.</li>
+      </ol>
+    </section>
+
+    <!-- Texto de apoio -->
+    <section class="card">
+      <h2><span class="num">1</span> Texto de apoio</h2>
+      <p class="desc">Anexe o arquivo que contém o tema e os textos motivadores da redação.</p>
+
+      <div class="anexo-area">
+        <div class="arquivo-info" id="arquivoInfo">Nenhum arquivo anexado.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <label class="btn" for="inputArquivo">📎 Anexar arquivo</label>
+          <button class="btn secundario" id="btnRemover" type="button" disabled>Remover</button>
+        </div>
+        <input type="file" id="inputArquivo" accept=".txt,.md,text/plain,text/markdown">
+      </div>
+
+      <div class="texto-apoio" id="textoApoio"></div>
+      <p class="vazio-apoio" id="vazioApoio">O conteúdo do texto de apoio aparecerá aqui após o anexo.</p>
+    </section>
+
+    <!-- Produção textual -->
+    <section class="card">
+      <h2><span class="num">2</span> Produção textual</h2>
+      <p class="desc">
+        Escreva sua redação sobre o tema proposto. Limite de <span class="tema-chip">20 linhas</span>.
+        Ao término do tempo, a escrita será bloqueada automaticamente.
+      </p>
+
+      <div class="editor-barra">
+        <div>Linhas: <span class="linhas-indicador" id="linhasTexto">0 / 20</span></div>
+        <div class="barra-linhas"><span id="barraLinhas"></span></div>
+      </div>
+
+      <textarea id="redacao" placeholder="Comece sua introdução contextualizando o tema..." spellcheck="true" aria-label="Produção textual"></textarea>
+
+      <div class="aviso-encerrado" id="avisoEncerrado" role="alert">
+        ⏰ Tempo esgotado! A produção textual foi encerrada e não aceita mais alterações.
+      </div>
+    </section>
+
+    <!-- Resumo final -->
+    <section class="resumo" id="resumoFinal" role="status" aria-live="polite"></section>
+
+    <!-- Métricas detalhadas -->
+    <section class="card">
+      <h2><span class="num">3</span> Métricas detalhadas</h2>
+      <p class="desc">Indicadores atualizados a cada alteração do texto.</p>
+      <div class="metricas" style="grid-template-columns:repeat(4,1fr)">
+        <div class="metrica"><div class="valor" id="mPalavras">0</div><div class="nome">Palavras</div></div>
+        <div class="metrica"><div class="valor" id="mCaracteres">0</div><div class="nome">Caracteres (com espaços)</div></div>
+        <div class="metrica"><div class="valor" id="mSemEspacos">0</div><div class="nome">Caracteres (sem espaços)</div></div>
+        <div class="metrica"><div class="valor" id="mLinhas">0</div><div class="nome">Linhas ocupadas</div></div>
+        <div class="metrica"><div class="valor" id="mParagrafos">0</div><div class="nome">Parágrafos</div></div>
+        <div class="metrica"><div class="valor" id="mFrases">0</div><div class="nome">Frases</div></div>
+        <div class="metrica"><div class="valor" id="mMediaFrase">0</div><div class="nome">Palavras por frase (média)</div></div>
+        <div class="metrica"><div class="valor" id="mMediaPalavra">0</div><div class="nome">Letras por palavra (média)</div></div>
+        <div class="metrica"><div class="valor" id="mUnicas">0</div><div class="nome">Palavras únicas</div></div>
+        <div class="metrica"><div class="valor" id="mRiqueza">0%</div><div class="nome">Riqueza lexical</div></div>
+        <div class="metrica"><div class="valor" id="mConectivos">0</div><div class="nome">Conectivos usados</div></div>
+        <div class="metrica"><div class="valor" id="mLeitura">0s</div><div class="nome">Tempo de leitura estimado</div></div>
+        <div class="metrica destaque">
+          <div class="valor" id="mRitmo">0</div>
+          <div class="nome">Ritmo de escrita (palavras por minuto, desde o início do simulado)</div>
+        </div>
+      </div>
+      <div class="lista-conectivos" id="listaConectivos"></div>
+    </section>
+
+    <!-- Estrutura -->
+    <section class="card">
+      <h2>📐 Estrutura da dissertação-argumentativa</h2>
+      <p class="desc">Use este guia para organizar o texto. Cada parágrafo tem uma função específica.</p>
+      <div class="estrutura">
+        <div class="etapa">
+          <h3>Introdução <small>Tese</small></h3>
+          <p>Contextualize o tema, apresente o problema e termine com sua tese clara.</p>
+          <ul>
+            <li>Repertório sociocultural legitimado</li>
+            <li>Delimitação do recorte do tema</li>
+          </ul>
+        </div>
+        <div class="etapa">
+          <h3>Desenvolvimento I <small>Argumento 1</small></h3>
+          <p>Defenda o primeiro argumento com justificativa e exemplo concreto.</p>
+          <ul>
+            <li>Tópico frasal</li>
+            <li>Justificativa + exemplo + fechamento</li>
+          </ul>
+        </div>
+        <div class="etapa">
+          <h3>Desenvolvimento II <small>Argumento 2</small></h3>
+          <p>Traga um novo ângulo, sem repetir o anterior, reforçando a tese.</p>
+          <ul>
+            <li>Conectivo de transição</li>
+            <li>Dados, fatos ou citações pertinentes</li>
+          </ul>
+        </div>
+        <div class="etapa">
+          <h3>Conclusão <small>Proposta</small></h3>
+          <p>Retome a tese e apresente a proposta de intervenção detalhada.</p>
+          <ul>
+            <li>Agente, ação, meio, finalidade e detalhamento</li>
+            <li>Respeito aos direitos humanos</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <aside class="sidebar">
+
+    <!-- Cronômetro -->
+    <div class="cronometro" id="cronoBox">
+      <div class="rotulo">Tempo restante</div>
+      <div class="tempo" id="tempoRestante">01:30:00</div>
+      <div class="progresso-tempo"><span id="barraTempo"></span></div>
+      <div class="info">
+        <span>Decorrido: <strong id="tempoDecorrido">00:00:00</strong></span>
+        <span id="percentual">0%</span>
+      </div>
+    </div>
+
+    <!-- Checklist -->
+    <section class="card">
+      <h2>✅ Checklist</h2>
+      <p class="desc">Marque conforme revisar seu texto.</p>
+      <ul class="checklist">
+        <li><label><input type="checkbox"> Introdução contextualiza o tema e apresenta a tese</label></li>
+        <li><label><input type="checkbox"> Repertório sociocultural pertinente e legitimado</label></li>
+        <li><label><input type="checkbox"> Desenvolvimento I com argumento, justificativa e exemplo</label></li>
+        <li><label><input type="checkbox"> Desenvolvimento II com argumento distinto do primeiro</label></li>
+        <li><label><input type="checkbox"> Conectivos entre os parágrafos</label></li>
+        <li><label><input type="checkbox"> Conclusão retoma a tese</label></li>
+        <li><label><input type="checkbox"> Proposta com agente, ação, meio, finalidade e detalhamento</label></li>
+        <li><label><input type="checkbox"> Texto dentro do limite de 20 linhas</label></li>
+      </ul>
+    </section>
+
+    <!-- Ações -->
+    <section class="card">
+      <h2>🗂️ Ações</h2>
+      <p class="desc">Copie o texto para revisão ou limpe o editor antes de começar novamente.</p>
+      <div class="acoes">
+        <button class="btn sucesso" id="btnFinalizar" type="button">✔ Finalizar</button>
+        <button class="btn" id="btnCopiar" type="button">Copiar texto</button>
+        <button class="btn perigo" id="btnLimpar" type="button">Limpar</button>
+      </div>
+    </section>
+
+  </aside>
+</div>
+
+<div class="rodape">Simulado de Redação · Use este espaço para treinar sob pressão de tempo.</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+  const DURACAO_SEGUNDOS = 90 * 60;
+  const MAX_LINHAS = 20;
+  const META_LEITURA_PPM = 200;     // palavras por minuto (leitura)
+  const CONECTIVOS = [
+    "além disso","portanto","entretanto","no entanto","contudo","todavia","logo","assim",
+    "porque","pois","primeiramente","em primeiro lugar","em segundo lugar","por fim",
+    "em suma","ademais","dessa forma","desse modo","por outro lado","nesse sentido",
+    "consequentemente","por conseguinte","haja vista","uma vez que","visto que"
+  ];
+
+  const $ = id => document.getElementById(id);
+  const ta = $("redacao");
+  const toastEl = $("toast");
+
+  // ---------- Início do cronômetro: assim que a página é aberta ----------
+  const inicio = Date.now();
+  let encerrado = false;
+  let finalizadoEm = null;
+
+  // ---------- Relógio ----------
+  function atualizarRelogio() {
+    const agora = new Date();
+    $("relogio").textContent = agora.toLocaleTimeString("pt-BR");
+    $("data").textContent = agora.toLocaleDateString("pt-BR", {
+      weekday: "long", day: "numeric", month: "long", year: "numeric"
+    });
+  }
+
+  // ---------- Formatação ----------
+  const pad = n => String(n).padStart(2, "0");
+  function formatarTempo(seg) {
+    seg = Math.max(0, Math.floor(seg));
+    return `${pad(Math.floor(seg / 3600))}:${pad(Math.floor((seg % 3600) / 60))}:${pad(seg % 60)}`;
+  }
+
+  // ---------- Toast ----------
+  let toastTimer;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("visivel");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove("visivel"), 2600);
+  }
+
+  // ---------- Cronômetro ----------
+  function atualizarCronometro() {
+    const decorrido = Math.floor(((finalizadoEm ?? Date.now()) - inicio) / 1000);
+    const restante = Math.max(0, DURACAO_SEGUNDOS - decorrido);
+    const pctDecorrido = Math.min(100, (decorrido / DURACAO_SEGUNDOS) * 100);
+
+    $("tempoRestante").textContent = formatarTempo(restante);
+    $("tempoDecorrido").textContent = formatarTempo(decorrido);
+    $("barraTempo").style.width = (100 - pctDecorrido) + "%";
+    $("percentual").textContent = Math.round(pctDecorrido) + "% concluído";
+
+    const box = $("cronoBox");
+    if (!finalizadoEm) {
+      box.classList.toggle("alerta", restante <= 30 * 60 && restante > 10 * 60);
+      box.classList.toggle("critico", restante <= 10 * 60 && restante > 0);
+    }
+
+    if (restante === 0 && !encerrado) encerrarTempo();
+    return decorrido;
+  }
+
+  function encerrarTempo() {
+    encerrado = true;
+    ta.disabled = true;
+    ta.blur();
+    $("avisoEncerrado").classList.add("visivel");
+    $("btnLimpar").disabled = true;
+    $("btnFinalizar").disabled = true;
+    $("btnCopiar").disabled = false;
+    $("barraTempo").style.width = "0%";
+    $("tempoRestante").textContent = "00:00:00";
+    toast("⏰ Tempo encerrado! Escrita bloqueada.");
+  }
+
+  // ---------- Limite de 20 linhas (mede linhas visuais reais) ----------
+  const espelho = document.createElement("div");
+  espelho.setAttribute("aria-hidden", "true");
+  espelho.style.cssText = "position:absolute;visibility:hidden;left:-9999px;top:0;white-space:pre-wrap;overflow-wrap:break-word;word-break:normal;";
+  document.body.appendChild(espelho);
+
+  function contarLinhas(texto) {
+    if (!texto) return 0;
+    const cs = getComputedStyle(ta);
+    const largura = ta.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const lh = parseFloat(cs.lineHeight);
+    espelho.style.width = largura + "px";
+    espelho.style.fontFamily = cs.fontFamily;
+    espelho.style.fontSize = cs.fontSize;
+    espelho.style.lineHeight = cs.lineHeight;
+    espelho.style.letterSpacing = cs.letterSpacing;
+    espelho.textContent = texto.endsWith("\n") ? texto + " " : texto;
+    return Math.max(1, Math.round(espelho.offsetHeight / lh));
+  }
+
+  let ultimoValido = "";
+
+  ta.addEventListener("input", () => {
+    if (contarLinhas(ta.value) > MAX_LINHAS) {
+      ta.value = ultimoValido;
+      toast(`Limite de ${MAX_LINHAS} linhas atingido.`);
+    } else {
+      ultimoValido = ta.value;
+    }
+    atualizarTudo();
+  });
+
+  // ---------- Métricas ----------
+  const normalizar = s => s.toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ");
+
+  function calcularMetricas(texto) {
+    const caracteres = texto.length;
+    const semEspacos = texto.replace(/\s/g, "").length;
+    const palavrasArr = texto.trim().match(/\S+/g) || [];
+    const palavras = palavrasArr.length;
+    const linhasTxt = texto.split(/\n/);
+    const paragrafos = linhasTxt.filter(l => l.trim().length > 0).length;
+    const frases = texto.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
+    const mediaFrase = frases ? palavras / frases : 0;
+    const letrasTotais = palavrasArr.reduce((acc, p) => acc + p.replace(/[^\p{L}\p{N}]/gu, "").length, 0);
+    const mediaPalavra = palavras ? letrasTotais / palavras : 0;
+
+    const normal = normalizar(texto).trim();
+    const tokens = normal ? normal.split(/\s+/) : [];
+    const unicas = new Set(tokens).size;
+    const riqueza = tokens.length ? (unicas / tokens.length) * 100 : 0;
+
+    const textoNorm = " " + normal.replace(/\s+/g, " ") + " ";
+    const encontrados = {};
+    let totalConectivos = 0;
+    CONECTIVOS.forEach(c => {
+      const alvo = " " + normalizar(c).trim() + " ";
+      const ocorr = textoNorm.split(alvo).length - 1;
+      if (ocorr > 0) { encontrados[c] = ocorr; totalConectivos += ocorr; }
+    });
+
+    const segLeitura = (palavras / META_LEITURA_PPM) * 60;
+
+    return {
+      caracteres, semEspacos, palavras,
+      linhas: contarLinhas(texto),
+      paragrafos, frases,
+      mediaFrase, mediaPalavra,
+      unicas, riqueza,
+      totalConectivos, encontrados,
+      segLeitura
+    };
+  }
+
+  function atualizarMetricas() {
+    const t = ta.value;
+    const m = calcularMetricas(t);
+    const decorridoMin = (Date.now() - inicio) / 60000;
+    const ritmo = decorridoMin > 0 ? m.palavras / decorridoMin : 0;
+
+    $("mPalavras").textContent = m.palavras;
+    $("mCaracteres").textContent = m.caracteres;
+    $("mSemEspacos").textContent = m.semEspacos;
+    $("mLinhas").textContent = m.linhas;
+    $("mParagrafos").textContent = m.paragrafos;
+    $("mFrases").textContent = m.frases;
+    $("mMediaFrase").textContent = m.mediaFrase.toFixed(1);
+    $("mMediaPalavra").textContent = m.mediaPalavra.toFixed(1);
+    $("mUnicas").textContent = m.unicas;
+    $("mRiqueza").textContent = m.riqueza.toFixed(0) + "%";
+    $("mConectivos").textContent = m.totalConectivos;
+    $("mLeitura").textContent = m.segLeitura < 60
+      ? Math.round(m.segLeitura) + "s"
+      : Math.floor(m.segLeitura / 60) + "min " + Math.round(m.segLeitura % 60) + "s";
+    $("mRitmo").textContent = Math.round(ritmo);
+
+    const lista = Object.entries(m.encontrados)
+      .map(([k, v]) => `<span class="tag">${k} × ${v}</span>`).join("");
+    $("listaConectivos").innerHTML = lista
+      ? `<strong>Conectivos identificados:</strong><br>${lista}`
+      : "Nenhum conectivo identificado ainda. Use conectivos para ligar suas ideias.";
+
+    // Indicador de linhas
+    $("linhasTexto").textContent = `${m.linhas} / ${MAX_LINHAS}`;
+    const pct = Math.min(100, (m.linhas / MAX_LINHAS) * 100);
+    const barra = $("barraLinhas");
+    barra.style.width = pct + "%";
+    barra.style.background = pct >= 100 ? "var(--danger)" : pct >= 75 ? "var(--warn)" : "var(--ok)";
+  }
+
+  function atualizarTudo() {
+    atualizarMetricas();
+  }
+
+  // ---------- Texto de apoio (anexo) ----------
+  const inputArq = $("inputArquivo");
+  const btnRemover = $("btnRemover");
+
+  inputArq.addEventListener("change", async () => {
+    const arq = inputArq.files[0];
+    if (!arq) return;
+    const nomeOk = /\.(txt|md)$/i.test(arq.name);
+    if (!nomeOk) {
+      toast("Formato não suportado. Use arquivos .txt ou .md.");
+      inputArq.value = "";
+      return;
+    }
+    try {
+      const conteudo = await arq.text();
+      $("textoApoio").textContent = conteudo;
+      $("textoApoio").classList.add("visivel");
+      $("vazioApoio").style.display = "none";
+      $("arquivoInfo").innerHTML = `Anexado: <strong>${escapar(arq.name)}</strong> (${(arq.size / 1024).toFixed(1)} KB)`;
+      btnRemover.disabled = false;
+      toast("Texto de apoio carregado.");
+    } catch {
+      toast("Não foi possível ler o arquivo.");
+    }
+    inputArq.value = "";
+  });
+
+  btnRemover.addEventListener("click", () => {
+    $("textoApoio").textContent = "";
+    $("textoApoio").classList.remove("visivel");
+    $("vazioApoio").style.display = "";
+    $("arquivoInfo").textContent = "Nenhum arquivo anexado.";
+    btnRemover.disabled = true;
+  });
+
+  function escapar(s) {
+    return s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+
+  // ---------- Finalizar ----------
+  function finalizarRedacao() {
+    if (encerrado) return;
+    const texto = ta.value;
+    if (!texto.trim()) {
+      if (!confirm("O texto está vazio. Deseja finalizar mesmo assim?")) return;
+    } else if (!confirm("Ao finalizar, o texto não poderá mais ser editado. Confirmar?")) {
+      return;
+    }
+
+    finalizadoEm = Date.now();
+    encerrado = true;
+    ta.disabled = true;
+    ta.blur();
+
+    const decorridoSeg = Math.floor((finalizadoEm - inicio) / 1000);
+    const restanteSeg = Math.max(0, DURACAO_SEGUNDOS - decorridoSeg);
+    const m = calcularMetricas(texto);
+    const ritmo = decorridoSeg > 0 ? m.palavras / (decorridoSeg / 60) : 0;
+
+    $("resumoFinal").innerHTML = `
+      <h3>✅ Redação finalizada</h3>
+      <p>Você finalizou antes do fim do tempo. Confira o resumo abaixo e copie o texto para revisão.</p>
+      <div class="resumo-grid">
+        <div><strong>${formatarTempo(decorridoSeg)}</strong><span>Tempo utilizado</span></div>
+        <div><strong>${formatarTempo(restanteSeg)}</strong><span>Tempo que sobrou</span></div>
+        <div><strong>${m.palavras}</strong><span>Palavras</span></div>
+        <div><strong>${m.linhas} / ${MAX_LINHAS}</strong><span>Linhas</span></div>
+        <div><strong>${m.paragrafos}</strong><span>Parágrafos</span></div>
+        <div><strong>${m.frases}</strong><span>Frases</span></div>
+        <div><strong>${m.totalConectivos}</strong><span>Conectivos</span></div>
+        <div><strong>${Math.round(ritmo)}</strong><span>Palavras por minuto</span></div>
+      </div>`;
+    $("resumoFinal").classList.add("visivel");
+
+    $("cronoBox").querySelector(".rotulo").textContent = "Simulado finalizado";
+    $("btnFinalizar").disabled = true;
+    $("btnLimpar").disabled = true;
+    $("btnCopiar").disabled = false;
+    $("barraTempo").style.width = (restanteSeg / DURACAO_SEGUNDOS * 100) + "%";
+
+    atualizarCronometro();
+    atualizarMetricas();
+    toast("Redação finalizada com sucesso!");
+    $("resumoFinal").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  $("btnFinalizar").addEventListener("click", finalizarRedacao);
+
+  // ---------- Ações ----------
+  $("btnCopiar").addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(ta.value);
+      toast("Texto copiado para a área de transferência.");
+    } catch {
+      ta.select();
+      toast("Selecione e copie manualmente (Ctrl+C).");
+    }
+  });
+
+  $("btnLimpar").addEventListener("click", () => {
+    if (encerrado) return;
+    if (!ta.value || confirm("Tem certeza que deseja limpar o texto?")) {
+      ta.value = "";
+      ultimoValido = "";
+      atualizarTudo();
+    }
+  });
+
+  // ---------- Loop principal ----------
+  atualizarRelogio();
+  atualizarCronometro();
+  atualizarTudo();
+  setInterval(() => {
+    atualizarRelogio();
+    atualizarCronometro();
+    if (!encerrado) atualizarMetricas();
+  }, 1000);
+
+  window.addEventListener("resize", atualizarTudo);
+})();
+</script>
+</body>
+</html>
