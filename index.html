@@ -150,11 +150,15 @@
     margin-bottom:10px; font-size:.88rem; color:var(--muted);
   }
   .linhas-indicador{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+  .seletor-linhas{display:inline-flex;background:#eef2f7;border-radius:10px;padding:4px;gap:4px}
+  .opcao-linhas{border:none;background:transparent;padding:7px 14px;border-radius:8px;font-weight:600;color:var(--muted);cursor:pointer;font-size:.88rem;transition:background .2s,color .2s}
+  .opcao-linhas:hover{color:var(--ink)}
+  .opcao-linhas.ativa{background:var(--accent);color:#fff}
   .barra-linhas{height:8px;background:#ece8dc;border-radius:99px;overflow:hidden;width:180px;max-width:100%}
   .barra-linhas span{display:block;height:100%;width:0;background:var(--ok);transition:width .25s, background .25s}
   textarea#redacao{
     width:100%;
-    height:656px;             /* 20 linhas x 32px + 16px de respiro */
+    height:calc(var(--linhas, 20) * 32px + 16px);   /* linhas x 32px + 16px de respiro */
     resize:none; overflow:hidden;
     padding:8px 16px;
     font-family:Georgia,"Times New Roman",serif;
@@ -335,7 +339,7 @@
       <ol class="passos">
         <li><strong>1. Anexe o tema</strong>Carregue o texto de apoio (.txt ou .md) que define o tema da redação.</li>
         <li><strong>2. Leia com atenção</strong>Identifique o recorte do tema, os termos-chave e a proposta de discussão.</li>
-        <li><strong>3. Escreva</strong>Use no máximo 20 linhas. O cronômetro começou assim que a página foi aberta.</li>
+        <li><strong>3. Escreva</strong>Use no máximo <span id="passoLinhas">20</span> linhas. O cronômetro começou assim que a página foi aberta.</li>
         <li><strong>4. Salve e analise</strong>Salve o texto em arquivo, anote correções e revise a estrutura.</li>
       </ol>
     </section>
@@ -365,11 +369,15 @@
     <section class="card">
       <h2><span class="num">2</span> Produção textual</h2>
       <p class="desc">
-        Escreva sua redação sobre o tema proposto. Limite de <span class="tema-chip">20 linhas</span>.
+        Escreva sua redação sobre o tema proposto. Limite de <span class="tema-chip" id="chipLimite">20 linhas</span>.
         Ao término do tempo, a escrita será bloqueada automaticamente.
       </p>
 
       <div class="editor-barra">
+        <div class="seletor-linhas" role="radiogroup" aria-label="Limite de linhas">
+          <button type="button" class="opcao-linhas ativa" data-linhas="20" role="radio" aria-checked="true">20 linhas</button>
+          <button type="button" class="opcao-linhas" data-linhas="13" role="radio" aria-checked="false">13 linhas</button>
+        </div>
         <div>Linhas: <span class="linhas-indicador" id="linhasTexto">0 / 20</span></div>
         <div class="barra-linhas"><span id="barraLinhas"></span></div>
       </div>
@@ -502,7 +510,7 @@
         <li><label><input type="checkbox"> Conectivos entre os parágrafos</label></li>
         <li><label><input type="checkbox"> Conclusão retoma a tese</label></li>
         <li><label><input type="checkbox"> Proposta com agente, ação, meio, finalidade e detalhamento</label></li>
-        <li><label><input type="checkbox"> Texto dentro do limite de 20 linhas</label></li>
+        <li><label><input type="checkbox"> Texto dentro do limite de <span id="checkLinhas">20</span> linhas</label></li>
       </ul>
     </section>
 
@@ -534,7 +542,7 @@
 <script>
 (() => {
   const DURACAO_SEGUNDOS = 90 * 60;
-  const MAX_LINHAS = 20;
+  let MAX_LINHAS = 20;
   const META_LEITURA_PPM = 200;
   const CONECTIVOS = [
     "além disso","portanto","entretanto","no entanto","contudo","todavia","logo","assim",
@@ -705,6 +713,31 @@
   }
 
   let ultimoValido = "";
+
+  const botoesLinhas = document.querySelectorAll(".opcao-linhas");
+
+  function definirLimite(n) {
+    if (encerrado || n === MAX_LINHAS) return;
+    if (contarLinhas(ta.value) > n) {
+      toast(`Reduza o texto para até ${n} linhas antes de trocar o limite.`);
+      return;
+    }
+    MAX_LINHAS = n;
+    ta.style.setProperty("--linhas", n);
+    botoesLinhas.forEach(b => {
+      const ativo = Number(b.dataset.linhas) === n;
+      b.classList.toggle("ativa", ativo);
+      b.setAttribute("aria-checked", ativo);
+    });
+    $("chipLimite").textContent = `${n} linhas`;
+    $("passoLinhas").textContent = n;
+    $("checkLinhas").textContent = n;
+    atualizarTudo();
+    toast(`Limite alterado para ${n} linhas.`);
+  }
+
+  botoesLinhas.forEach(b => b.addEventListener("click", () => definirLimite(Number(b.dataset.linhas))));
+  ta.style.setProperty("--linhas", MAX_LINHAS);
 
   ta.addEventListener("input", () => {
     if (contarLinhas(ta.value) > MAX_LINHAS) {
